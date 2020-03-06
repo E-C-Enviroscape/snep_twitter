@@ -7,24 +7,113 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+
+# load packages for twitter word search
+library(rtweet)
+
+# load text mining library
+library(tidytext)
+
+# plotting packages
+library(tidyverse, igraph)
+
 ```
 
-## R Markdown
+## What ecosystem services do people in the SNEP region care about?
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+The purpose of this document is to track the usage of certain words in tweets 
+that might indicate general interest, concern, or focus of Twitter users in the
+SNEP region.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+We will mine Twitter every week for the next several months to determine which 
+words (representing ecosystem services) are the most popular. We will be using the 
+[rtweet package](https://rtweet.info/) in R to do this. Here is the list of words:
 
-```{r cars}
-summary(cars)
+* swimming
+* hiking
+* boating
+* kayaking
+* fishing
+* ferry
+* ocean
+* beach
+* wave
+* wetland
+* seaweed
+* river
+* bay
+* forest
+* seafood
+* beach closure
+* red tide
+* nor'easter
+* flooding
+* drought
+* tide
+* seal
+
+```{r wordlist, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+# create list of words representing ecosystem services in the SNEP region
+
+snep_words <- c("swimming", "hiking", "boating", "kayaking", "fishing", "ferry",
+                "ocean", "beach", "wave", "wetland", "seaweed", "river", "bay", 
+                "forest", "seafood", "beach closure", "red tide", "nor'easter", 
+                "flooding", "drought", "tide", "seal")
+
 ```
 
-## Including Plots
+***
+Here's the first try at mining Twitter data and quantifying SNEP words:
 
-You can also embed plots, for example:
+```{r wordsMar5, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+# need google maps API to get georeferenced tweets
+
+# search for 18,000 tweets in RI and MA
+mar5 <- search_tweets("lang:en", geocode = lookup_coords("rhode island", "massachusetts", apikey = "AIzaSyDekm4ATG_9Ir0N1VGuNo8accyKrnttbDU" ), n = 18000, include_rts = FALSE)
+
+# remove http elements manually
+mar5$text <- gsub("http.*","",  mar5$text)
+mar5$text <- gsub("https.*","", mar5$text)
+
+# filter out usernames
+
+
+# create list of words and make tidy
+mar5_words <- mar5 %>%
+  dplyr::select(text) %>%
+  unnest_tokens(word, text, token = "tweets") %>%
+  filter(!word %in% stop_words$word,
+         !word %in% str_remove_all(stop_words$word, "'"),
+         str_detect(word , "[a-z]"))
+
+# filter out all other words besides snep_words
+mar5_snep <- mar5_words %>% 
+  filter(str_detect(word, "swimming|hiking|boating|kayaking|fishing|ferry|ocean|beach|wave|wetland|seaweed|river|bay|forest|seafood|beach closure|red tide|noreaster|flooding|drought|tide|seal"))
+
+# summarize by word frequency
+mar5_freq <- mar5_snep %>%
+  group_by(word) %>%
+  count(word, sort = TRUE) %>%
+  left_join(mar5_snep %>%
+              group_by(word) %>%
+              summarise(total = sum(mar5_freq$n))) %>%
+  mutate(freq = (n/total)*100)
+
+# plot top words
+mar5_snep %>%
+  count(word, sort = TRUE) %>%
+  top_n(15) %>%
+  mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col() +
+  xlab(NULL) +
+  coord_flip() +
+      labs(y = "Count",
+      x = "Top SNEP Key Words",
+      title = "Count of SNEP key words found in tweets")
+
 ```
-
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
