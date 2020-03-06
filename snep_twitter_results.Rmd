@@ -52,59 +52,68 @@ words (representing ecosystem services) are the most popular. We will be using t
 * tide
 * seal
 
-```{r wordlist, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
-# create list of words representing ecosystem services in the SNEP region
-
-snep_words <- c("swimming", "hiking", "boating", "kayaking", "fishing", "ferry",
-                "ocean", "beach", "wave", "wetland", "seaweed", "river", "bay", 
-                "forest", "seafood", "beach closure", "red tide", "nor'easter", 
-                "flooding", "drought", "tide", "seal")
-
-```
-
 ***
 Here's the first try at mining Twitter data and quantifying SNEP words:
 
-```{r wordsMar5, include = FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r wordsMar6, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE)
 
 # need google maps API to get georeferenced tweets
 
 # search for 18,000 tweets in RI and MA
-mar5 <- search_tweets("lang:en", geocode = lookup_coords("rhode island", "massachusetts", apikey = "AIzaSyDekm4ATG_9Ir0N1VGuNo8accyKrnttbDU" ), n = 18000, include_rts = FALSE)
+mar6 <- search_tweets("lang:en", geocode = lookup_coords("rhode island", "massachusetts", apikey = "AIzaSyDekm4ATG_9Ir0N1VGuNo8accyKrnttbDU" ), n = 18000, include_rts = FALSE)
 
 # remove http elements manually
-mar5$text <- gsub("http.*","",  mar5$text)
-mar5$text <- gsub("https.*","", mar5$text)
+mar6$text <- gsub("http.*","",  mar6$text)
+mar6$text <- gsub("https.*","", mar6$text)
 
-# filter out usernames
 
 
 # create list of words and make tidy
-mar5_words <- mar5 %>%
+mar6_words <- mar6 %>%
   dplyr::select(text) %>%
   unnest_tokens(word, text, token = "tweets") %>%
   filter(!word %in% stop_words$word,
          !word %in% str_remove_all(stop_words$word, "'"),
          str_detect(word , "[a-z]"))
 
+# filter out certain words that contain snep words
+mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed", "unwavering", "microwave", "waverly", "waved"))
+
+mar6_words <- anti_join(mar6_words, mystopwords, 
+                           by = "word")
+
 # filter out all other words besides snep_words
-mar5_snep <- mar5_words %>% 
+mar6_snep <- mar6_words %>% 
   filter(str_detect(word, "swimming|hiking|boating|kayaking|fishing|ferry|ocean|beach|wave|wetland|seaweed|river|bay|forest|seafood|beach closure|red tide|noreaster|flooding|drought|tide|seal"))
 
+# filter out usernames
+mar6_snep <- str_remove(mar6_snep$word, "@.*") %>%
+  data.frame(lapply(mar6_snep, as.character), stringsAsFactors=FALSE)
+
+# remove blanks
+mar6_snep <- mar6_snep[!(is.na(mar6_snep$.) | mar6_snep$.==""), ]
+
+# select single column and rename
+mar6_snep <- select(mar6_snep, .) %>%
+  rename(word = 1)
+
+# save for adding to future months!
+write.csv(mar6_snep,"mar6_snep.csv", row.names = FALSE)
+
 # summarize by word frequency
-mar5_freq <- mar5_snep %>%
+mar6_freq <- mar6_snep %>%
   group_by(word) %>%
   count(word, sort = TRUE) %>%
-  left_join(mar5_snep %>%
+  left_join(mar6_snep %>%
               group_by(word) %>%
-              summarise(total = sum(mar5_freq$n))) %>%
+              summarise(total = sum(mar6_freq$n))) %>%
   mutate(freq = (n/total)*100)
 
+write.csv(mar6_freq,"mar6_freq.csv", row.names = FALSE)
+
 # plot top words
-mar5_snep %>%
+mar6_plot <- mar6_snep %>%
   count(word, sort = TRUE) %>%
   top_n(15) %>%
   mutate(word = reorder(word, n)) %>%
@@ -114,6 +123,9 @@ mar5_snep %>%
   coord_flip() +
       labs(y = "Count",
       x = "Top SNEP Key Words",
-      title = "Count of SNEP key words found in tweets")
+      title = "March 6, 2020: Count of SNEP key words found in tweets")
+
+mar6_plot
+ggsave("mar6_plot.png", dpi = 200)
 
 ```
