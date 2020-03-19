@@ -1,6 +1,5 @@
 ---
-title: "snep twitter"
-author: "emily shumchenia"
+title: "What ecosystem services do people in the SNEP region care about?"
 date: "3/18/2020"
 output: html_document
 ---
@@ -8,7 +7,9 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
-## load packages for twitter word search
+## this chunk loads all of the packages we need
+
+## for twitter word search
 library(rtweet) # install.packages("rtweet")
 
 ## load text mining library
@@ -21,12 +22,11 @@ library(tidyverse, igraph) # install.packages("tidyverse", "igraph")
 
 ## What ecosystem services do people in the SNEP region care about?
 
-The purpose of this document is to track the usage of certain words in tweets 
-that might indicate general interest, concern, or focus of Twitter users in the
-SNEP region.
+We picked these words that might indicate general interest, concern, or focus of 
+Twitter users in the SNEP region (Westerly, RI to Cape Cod, MA).
 
-We will mine Twitter every week for the next several months to determine which 
-words (representing ecosystem services) are the most popular. We will be using the 
+We are examining Twitter data one day every week from March to August 2020 to 
+determine which words (representing ecosystem services) are the most popular. We will be using the 
 [rtweet package](https://rtweet.info/) in R to do this. Here is the list of words:
 
 * swimming
@@ -71,7 +71,7 @@ mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed",
 Here's the first try at mining Twitter data and quantifying SNEP words:
 
 ```{r words_mar6, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 
 ## need google maps API to get georeferenced tweets
 
@@ -113,7 +113,7 @@ mar6_snep <- select(mar6_snep, .) %>%
 
 ## add a date column and save for adding to future months!
 mar6_snep$date <- "march 6 2020"
-write.csv(mar6_snep,"mar6_snep.csv", row.names = FALSE)
+write.csv(mar6_snep,"data/mar6_snep.csv", row.names = FALSE)
 
 ## summarize by word frequency
 mar6_freq <- mar6_snep %>%
@@ -123,7 +123,7 @@ mar6_freq <- mar6_snep %>%
               group_by(word) %>%
               summarise())
 
-write.csv(mar6_freq,"mar6_freq.csv", row.names = FALSE)
+write.csv(mar6_freq,"data/mar6_freq.csv", row.names = FALSE)
 
 ## plot top words
 mar6_plot <- mar6_snep %>%
@@ -139,7 +139,8 @@ mar6_plot <- mar6_snep %>%
       title = "March 6, 2020: Count of SNEP key words found in tweets")
 
 mar6_plot
-ggsave("mar6_plot.png", dpi = 200)
+
+ggsave("figures/mar6_plot.png", dpi = 200)
 
 ```
 
@@ -188,7 +189,7 @@ mar11_snep <- select(mar11_snep, .) %>%
 
 ## add a date column and save for adding to future months!
 mar11_snep$date <- "march 11 2020"
-write.csv(mar11_snep,"mar11_snep.csv", row.names = FALSE)
+write.csv(mar11_snep,"data/mar11_snep.csv", row.names = FALSE)
 
 ## summarize by word frequency
 mar11_freq <- mar11_snep %>%
@@ -198,7 +199,7 @@ mar11_freq <- mar11_snep %>%
              group_by(word) %>%
               summarise())
 
-write.csv(mar11_freq,"mar11_freq.csv", row.names = FALSE)
+write.csv(mar11_freq,"data/mar11_freq.csv", row.names = FALSE)
 
 ## plot top words
 mar11_plot <- mar11_snep %>%
@@ -214,7 +215,8 @@ mar11_plot <- mar11_snep %>%
       title = "March 11, 2020: Count of SNEP key words found in tweets")
 
 mar11_plot
-ggsave("mar11_plot.png", dpi = 200)
+
+ggsave("figures/mar11_plot.png", dpi = 200)
 
 ```
 
@@ -234,7 +236,7 @@ allsnep_freq <- all_snep %>%
              group_by(word) %>%
               summarise())
 
-write.csv(allsnep_freq,"allsnep_freq.csv", row.names = FALSE)
+write.csv(allsnep_freq,"data/allsnep_freq.csv", row.names = FALSE)
 
 ## plot top words
 allsnep_plot <- all_snep %>%
@@ -250,6 +252,6 @@ allsnep_plot <- all_snep %>%
       title = "March 6-11, 2020: Count of SNEP key words found in tweets")
 
 allsnep_plot
-ggsave("allsnep_plot.png", dpi = 200)
+ggsave("figures/allsnep_plot.png", dpi = 200)
 
 ```
