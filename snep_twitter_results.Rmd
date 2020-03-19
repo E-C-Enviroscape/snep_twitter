@@ -16,46 +16,32 @@ library(rtweet) # install.packages("rtweet")
 library(tidytext) # install.packages("tidytext")
 
 ## plotting packages
+library(plyr) # install.packages("plyr")
+library(readr) # install.packages("readr")
 library(tidyverse, igraph) # install.packages("tidyverse", "igraph")
 
 ```
 
-## What ecosystem services do people in the SNEP region care about?
-
-We picked these words that might indicate general interest, concern, or focus of 
+We picked words that might indicate general interest, concern, or focus of 
 Twitter users in the SNEP region (Westerly, RI to Cape Cod, MA).
 
 We are examining Twitter data one day every week from March to August 2020 to 
 determine which words (representing ecosystem services) are the most popular. We will be using the 
-[rtweet package](https://rtweet.info/) in R to do this. Here is the list of words:
+[rtweet package](https://rtweet.info/) in R to do this.
 
-* swimming
-* hiking
-* boating
-* kayaking
-* fishing
-* ferry
-* ocean
-* beach
-* wave
-* wetland
-* seaweed
-* river
-* bay
-* forest
-* seafood
-* beach closure
-* red tide
-* nor'easter
-* flooding
-* drought
-* tide
-* seal
+|Twitter search words|   	      |   	   |     	 |
+|--------------------|----------|--------|-------|
+|swimming	           |hiking	  |fishing |ferry  |
+|boating	           |kayaking  |ocean	 |beach  |
+|wave	               |wetland	  |seaweed |river	 |
+|bay	               |forest	  |seafood |tide   |
+|red tide	           |nor'easter|flooding|drought|
+|beach closure       |seal	    |   	   |   	   |
 
 ***
 
 ```{r stopwords, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
 
 ## running list of words that contain snep words but aren't of interest
 
@@ -64,26 +50,26 @@ mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed",
                                "#ebay", "#bluewave2020", "bayek", "#busdriver", 
                                "bayer", "unsealed", "smithrivera", "seales", 
                                "rainforests", "rainforest", "rivera", "riverside", 
-                               "#bluewave"))
+                               "#bluewave", "bayada", "#deliverydriver", "kumbaya", 
+                               "antidepressants", "beaches"))
 
 ```
 
-Here's the first try at mining Twitter data and quantifying SNEP words:
 
-```{r words_mar6, include = FALSE}
+```{r snep_twitter_today, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 ## need google maps API to get georeferenced tweets
 
-## search for 18,000 tweets in RI and MA
-# mar6 <- search_tweets("lang:en", geocode = lookup_coords("rhode island", "massachusetts", apikey = "AIzaSyDekm4ATG_9Ir0N1VGuNo8accyKrnttbDU" ), n = 18000, include_rts = FALSE)
+## search for 18,000 tweets in RI and MA; note: "dt" stands for "daily tweets"
+#dt <- search_tweets("lang:en", geocode = lookup_coords("rhode island", "massachusetts", apikey = "AIzaSyDekm4ATG_9Ir0N1VGuNo8accyKrnttbDU" ), n = 18000, include_rts = FALSE)
 
 ## remove http elements manually
-mar6$text <- gsub("http.*","",  mar6$text)
-mar6$text <- gsub("https.*","", mar6$text)
+dt$text <- gsub("http.*","",  dt$text)
+dt$text <- gsub("https.*","", dt$text)
 
 ## create list of words and make tidy
-mar6_words <- mar6 %>%
+dt_words <- dt %>%
   dplyr::select(text) %>%
   unnest_tokens(word, text, token = "tweets") %>%
   filter(!word %in% stop_words$word,
@@ -91,120 +77,54 @@ mar6_words <- mar6 %>%
          str_detect(word , "[a-z]"))
 
 ## filter out stopwords and emojis
-mar6_words$word <- sapply(mar6_words$word,function(row) iconv(row, "latin1", "ASCII", sub=""))
+dt_words$word <- sapply(dt_words$word,function(row) iconv(row, "latin1", "ASCII", sub=""))
 
-mar6_words <- anti_join(mar6_words, mystopwords, 
+dt_words <- anti_join(dt_words, mystopwords, 
                            by = "word")
 
 ## filter out all other words besides snep_words
-mar6_snep <- mar6_words %>% 
-  filter(str_detect(word, "swimming|hiking|boating|kayaking|fishing|ferry|ocean|beach|wave|wetland|seaweed|river|bay|forest|seafood|beach closure|red tide|noreaster|flooding|drought|tide|seal"))
-
-## filter out usernames and emojis
-mar6_snep <- str_remove(mar6_snep$word, "@.*") %>%
-  data.frame(lapply(mar6_snep, as.character), stringsAsFactors=FALSE)
-
-## remove blanks
-mar6_snep <- mar6_snep[!(is.na(mar6_snep$.) | mar6_snep$.==""), ]
-
-## select single column and rename
-mar6_snep <- select(mar6_snep, .) %>%
-  rename(word = 1)
-
-## add a date column and save for adding to future months!
-mar6_snep$date <- "march 6 2020"
-write.csv(mar6_snep,"data/mar6_snep.csv", row.names = FALSE)
-
-## summarize by word frequency
-mar6_freq <- mar6_snep %>%
-  group_by(word) %>%
-  count(word, sort = TRUE) %>%
-  left_join(mar6_snep %>%
-              group_by(word) %>%
-              summarise())
-
-write.csv(mar6_freq,"data/mar6_freq.csv", row.names = FALSE)
-
-## plot top words
-mar6_plot <- mar6_snep %>%
-  count(word, sort = TRUE) %>%
-  top_n(15) %>%
-  mutate(word = reorder(word, n)) %>%
-  ggplot(aes(x = word, y = n)) +
-  geom_col() +
-  xlab(NULL) +
-  coord_flip() +
-      labs(y = "Count",
-      x = "Top SNEP Key Words",
-      title = "March 6, 2020: Count of SNEP key words found in tweets")
-
-mar6_plot
-
-ggsave("figures/mar6_plot.png", dpi = 200)
-
-```
-
-And now repeating these methods for the following week:
-
-```{r words_mar11, include = FALSE}
-knitr::opts_chunk$set(echo = FALSE)
-
-## need google maps API to get georeferenced tweets
-
-## search for 18,000 tweets in RI and MA
-# mar11 <- search_tweets("lang:en", geocode = lookup_coords("rhode island", "massachusetts", apikey = "AIzaSyDekm4ATG_9Ir0N1VGuNo8accyKrnttbDU" ), n = 18000, include_rts = FALSE)
-
-## remove http elements manually
-mar11$text <- gsub("http.*","",  mar11$text)
-mar11$text <- gsub("https.*","", mar11$text)
-
-## create list of words and make tidy
-mar11_words <- mar11 %>%
-  dplyr::select(text) %>%
-  unnest_tokens(word, text, token = "tweets") %>%
-  filter(!word %in% stop_words$word,
-         !word %in% str_remove_all(stop_words$word, "'"),
-         str_detect(word , "[a-z]"))
-
-## filter out stopwords and emojis
-mar11_words <- anti_join(mar11_words, mystopwords, 
-                           by = "word")
-
-mar6_words$word <- sapply(mar6_words$word,function(row) iconv(row, "latin1", "ASCII", sub=""))
-
-## filter out all other words besides snep_words
-mar11_snep <- mar11_words %>% 
+dt_snep <- dt_words %>% 
   filter(str_detect(word, "swimming|hiking|boating|kayaking|fishing|ferry|ocean|beach|wave|wetland|seaweed|river|bay|forest|seafood|beach closure|red tide|noreaster|flooding|drought|tide|seal"))
 
 ## filter out usernames
-mar11_snep <- str_remove(mar11_snep$word, "@.*") %>%
-  data.frame(lapply(mar11_snep, as.character), stringsAsFactors=FALSE)
+dt_snep <- str_remove(dt_snep$word, "@.*") %>%
+  data.frame(lapply(dt_snep, as.character), stringsAsFactors=FALSE)
 
 ## remove blanks
-mar11_snep <- mar11_snep[!(is.na(mar11_snep$.) | mar11_snep$.==""), ]
+dt_snep <- dt_snep[!(is.na(dt_snep$.) | dt_snep$.==""), ]
 
 ## select single column and rename
-mar11_snep <- select(mar11_snep, .) %>%
+dt_snep <- select(dt_snep, .) %>%
   rename(word = 1)
 
 ## add a date column and save for adding to future months!
-mar11_snep$date <- "march 11 2020"
-write.csv(mar11_snep,"data/mar11_snep.csv", row.names = FALSE)
+current_date <- Sys.Date() ## calling the current date
+
+dt_snep$date <- current_date ## putting the current date in a column named "date"
+
+word_search_FileName <- paste("data/daily_data/words/snep_twitter_words_", current_date, 
+                              ".csv", sep="") ## creating an object for the filename with current date
+
+write.csv(dt_snep, word_search_FileName, row.names = FALSE) ## writing the data file
+
 
 ## summarize by word frequency
-mar11_freq <- mar11_snep %>%
+dt_freq <- dt_snep %>%
   group_by(word) %>%
   count(word, sort = TRUE) %>%
-  left_join(mar11_snep %>%
-             group_by(word) %>%
+  left_join(dt_snep %>%
+              group_by(word) %>%
               summarise())
 
-write.csv(mar11_freq,"data/mar11_freq.csv", row.names = FALSE)
+word_freq_FileName <- paste("data/daily_data/freq/snep_twitter_freq_", current_date, 
+                            ".csv", sep="") ## creating an object for the filename with current date
+
+write.csv(dt_freq, word_freq_FileName, row.names = FALSE) ## writing the data file
 
 ## plot top words
-mar11_plot <- mar11_snep %>%
+dt_plot <- dt_snep %>%
   count(word, sort = TRUE) %>%
-  top_n(12) %>%
+  top_n(14) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot(aes(x = word, y = n)) +
   geom_col() +
@@ -212,21 +132,26 @@ mar11_plot <- mar11_snep %>%
   coord_flip() +
       labs(y = "Count",
       x = "Top SNEP Key Words",
-      title = "March 11, 2020: Count of SNEP key words found in tweets")
+      title = paste(current_date, ": Count of SNEP key words found in tweets"))
 
-mar11_plot
+dt_plot
 
-ggsave("figures/mar11_plot.png", dpi = 200)
+word_freq_plot_FileName <- paste("figures/daily_figures/snep_twitter_word_freq_plot_", 
+                                 current_date, ".png", sep="") ## creating an object for the filename with current date
+
+ggsave(word_freq_plot_FileName, dpi = 200)
 
 ```
 
-Now create a combined table and plot showing the cumulative data.
 
-```{r words_all, include = FALSE}
+```{r snep_twitter_all, include = FALSE}
 knitr::opts_chunk$set(echo = FALSE)
 
 ## merge all of the weekly data into a single data frame
-all_snep <- rbind(mar6_snep, mar11_snep)
+words_list <- list.files(path = "data/daily_data/words",  pattern = "*.csv", 
+                         full.names = TRUE)
+
+all_snep <- ldply(words_list, read_csv)
 
 ## summarize by word frequency
 allsnep_freq <- all_snep %>%
@@ -249,9 +174,27 @@ allsnep_plot <- all_snep %>%
   coord_flip() +
       labs(y = "Count",
       x = "Top SNEP Key Words",
-      title = "March 6-11, 2020: Count of SNEP key words found in tweets")
+      title = "March 6-19, 2020: Count of SNEP key words found in tweets")
 
 allsnep_plot
 ggsave("figures/allsnep_plot.png", dpi = 200)
 
+```
+
+## So, what do people in the SNEP region care about?
+
+![](figures/allsnep_plot.png)
+***
+
+## Daily plots
+
+```{r, results = "asis"}
+
+img_list <- list.files( path = "figures/daily_figures/",  pattern = "*.png$")
+
+for (img in img_list){
+  cat(paste("![img](figures/daily_figures/", img, sep = ""), ")\n")
+
+  }
+cat("\n")
 ```
