@@ -4,6 +4,8 @@ date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
+***
+
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -33,16 +35,17 @@ We are examining Twitter data one day every week from March to August 2020 to
 determine which words (representing ecosystem services) are the most popular. We will be using the 
 [rtweet package](https://rtweet.info/) in R to do this.
 
-|Twitter search words|   	      |   	   |     	 |
-|--------------------|----------|--------|-------|
-|swimming	           |hiking	  |fishing |ferry  |
-|boating	           |kayaking  |ocean	 |beach  |
-|wave	               |wetland	  |seaweed |river	 |
-|bay	               |forest	  |seafood |tide   |
-|red tide	           |nor'easter|flooding|drought|
-|beach closure       |seal	    |   	   |   	   |
+|Twitter search words   	         	      |
+|-------------|----------|--------|-------|
+|swimming	    |hiking	   |fishing |ferry  |
+|boating	    |kayaking  |ocean	 |beach   |
+|wave	        |wetland	 |seaweed |river	|
+|bay	        |forest	   |seafood |tide   |
+|red tide	    |nor'easter|flooding|drought|
+|beach closure|seal	     |   	   |   	    |
 
 ***
+
 
 ```{r stopwords, include = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
@@ -233,6 +236,7 @@ ggsave("figures/allsnep_daily_plot.png", dpi = 200)
 ## So, what do people in the SNEP region care about?
 
 ![](figures/allsnep_plot.png)
+
 ***
 
 ## Daily plots
