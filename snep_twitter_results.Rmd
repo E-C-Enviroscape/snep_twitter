@@ -1,6 +1,6 @@
 ---
 title: "What ecosystem services do people in the SNEP region care about?"
-date: "3/18/2020"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: html_document
 ---
 
@@ -19,6 +19,10 @@ library(tidytext) # install.packages("tidytext")
 library(plyr) # install.packages("plyr")
 library(readr) # install.packages("readr")
 library(tidyverse, igraph) # install.packages("tidyverse", "igraph")
+
+# install.packages('devtools')
+devtools::install_github('bbc/bbplot')
+library(bbplot)
 
 ```
 
@@ -51,7 +55,7 @@ mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed",
                                "bayer", "unsealed", "smithrivera", "seales", 
                                "rainforests", "rainforest", "rivera", "riverside", 
                                "#bluewave", "bayada", "#deliverydriver", "kumbaya", 
-                               "antidepressants", "beaches"))
+                               "antidepressants", "beaches", "seals"))
 
 ```
 
@@ -169,15 +173,58 @@ allsnep_plot <- all_snep %>%
   top_n(15) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot(aes(x = word, y = n)) +
-  geom_col() +
+  geom_col(fill="#1380A1") +
+  geom_hline(yintercept = 0, size = 1, colour="#333333") +
+  bbc_style() +
+  theme(plot.title = ggplot2::element_text(size = 20), plot.subtitle = 
+          ggplot2::element_text(size = 16), axis.text = ggplot2::element_text(size = 14)) +
+  geom_label(aes(x = word, y = n, label = round(n, 0)),
+             hjust = 1, 
+             vjust = 0.5, 
+             colour = "white", 
+             fill = NA, 
+             label.size = NA, 
+             family="Helvetica", 
+             size = 4) +
+  geom_label(aes(x = 2, y = 30, label = "The data presented here is derived from publicly available Twitter data obtained 
+via the rtweet package in R and used in accordance with the Twitter Privacy Policy."),
+                           hjust = 0, 
+                           vjust = 0.5, 
+                           colour = "#555555", 
+                           fill = "white", 
+                           label.size = NA, 
+                           family="Helvetica", 
+                           size = 2) +
   xlab(NULL) +
   coord_flip() +
       labs(y = "Count",
       x = "Top SNEP Key Words",
-      title = "March 6-19, 2020: Count of SNEP key words found in tweets")
+      title = "Count of SNEP key words found in tweets",
+       subtitle = "March 6 - 20, 2020")
 
 allsnep_plot
 ggsave("figures/allsnep_plot.png", dpi = 200)
+
+
+## combine daily plots
+allsnep_daily_plot <- all_snep %>%
+  group_by(word, date) %>%
+  count(word, sort = FALSE) %>%
+  arrange(date, -n, word) %>%
+  filter(n != "1") %>%
+  top_n(15) %>%
+  #mutate(word = reorder(word, n)) %>%
+  ggplot(aes(x = word, y = n)) +
+  geom_col() +
+  facet_wrap(~date) +
+  xlab(NULL) +
+  coord_flip() +
+      labs(y = "Count",
+      x = "Top SNEP Key Words",
+      title = "March 6 - 20, 2020: Count of SNEP key words found in tweets")
+
+allsnep_daily_plot
+ggsave("figures/allsnep_daily_plot.png", dpi = 200)
 
 ```
 
@@ -187,14 +234,4 @@ ggsave("figures/allsnep_plot.png", dpi = 200)
 ***
 
 ## Daily plots
-
-```{r, results = "asis"}
-
-img_list <- list.files( path = "figures/daily_figures/",  pattern = "*.png$")
-
-for (img in img_list){
-  cat(paste("![img](figures/daily_figures/", img, sep = ""), ")\n")
-
-  }
-cat("\n")
-```
+![](figures/allsnep_daily_plot.png)
