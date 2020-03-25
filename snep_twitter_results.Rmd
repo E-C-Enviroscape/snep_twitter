@@ -205,7 +205,7 @@ via the rtweet package in R and used in accordance with the Twitter Privacy Poli
       labs(y = "Count",
       x = "Top SNEP Key Words",
       title = "Count of SNEP key words found in tweets",
-       subtitle = "March 6 - 20, 2020")
+       subtitle = paste("6 March - ", format(Sys.time(), '%d %B, %Y'), ": Count of SNEP key words found in tweets"))
 
 allsnep_plot
 ggsave("figures/allsnep_plot.png", dpi = 200)
@@ -226,7 +226,7 @@ allsnep_daily_plot <- all_snep %>%
   coord_flip() +
       labs(y = "Count",
       x = "Top SNEP Key Words",
-      title = "March 6 - 20, 2020: Count of SNEP key words found in tweets")
+      title = paste("6 March - ", format(Sys.time(), '%d %B, %Y'), ": Count of SNEP key words found in tweets"))
 
 allsnep_daily_plot
 ggsave("figures/allsnep_daily_plot.png", dpi = 200)
