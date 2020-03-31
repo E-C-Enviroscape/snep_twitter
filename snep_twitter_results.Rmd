@@ -60,7 +60,8 @@ mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed",
                                "#bluewave", "bayada", "#deliverydriver", "kumbaya", 
                                "antidepressants", "beaches", "seals", "bombay", 
                                "waves", "rivers", "baynes", "oceanography", "#fallriver",
-                               "#fallriverma", "rivers"))
+                               "#fallriverma", "rivers", "ebay", "forestall", 
+                               "$fallriverace"))
 
 ```
 
