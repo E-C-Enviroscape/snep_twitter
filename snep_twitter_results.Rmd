@@ -53,7 +53,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ## running list of words that contain snep words but aren't of interest
 
 mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed", 
-                               "unwavering", "microwave", "waverly", "waved", 
+                               "unwavering", "microwave", "microwaves", "waverly", "waved", 
                                "#ebay", "#bluewave2020", "bayek", "#busdriver", 
                                "bayer", "unsealed", "smithrivera", "seales", 
                                "rainforests", "rainforest", "rivera", "riverside", 
@@ -61,7 +61,10 @@ mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed",
                                "antidepressants", "beaches", "seals", "bombay", 
                                "waves", "rivers", "baynes", "oceanography", "#fallriver",
                                "#fallriverma", "rivers", "ebay", "forestall", 
-                               "$fallriverace"))
+                               "#fallriverace", "#adamdriverisoverparty", "#thefranchiseairwaves",
+                               "zywave", "waverlys", "showboating", "shockwaves", "shockwave", 
+                               "piledriver", "legaciesriverdale", "busdrivers", "bayyybeeee",
+                               "bayless", "baying", "airwaves"))
 
 ```
 
@@ -176,7 +179,7 @@ write.csv(allsnep_freq,"data/allsnep_freq.csv", row.names = FALSE)
 ## plot top words
 allsnep_plot <- all_snep %>%
   count(word, sort = TRUE) %>%
-  top_n(15) %>%
+  top_n(10) %>%
   mutate(word = reorder(word, n)) %>%
   ggplot(aes(x = word, y = n)) +
   geom_col(fill="#1380A1") +
