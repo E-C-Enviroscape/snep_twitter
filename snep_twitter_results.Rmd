@@ -209,7 +209,7 @@ via the rtweet package in R and used in accordance with the Twitter Privacy Poli
       labs(y = "Count",
       x = "Top SNEP Key Words",
       title = "Count of SNEP key words found in tweets",
-       subtitle = paste("6 March - ", format(Sys.time(), '%d %B, %Y'), ": Count of SNEP key words found in tweets"))
+       subtitle = paste("6 March - ", format(Sys.time(), '%d %B, %Y')))
 
 allsnep_plot
 ggsave("figures/allsnep_plot.png", dpi = 200)
