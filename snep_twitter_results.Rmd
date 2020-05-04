@@ -64,7 +64,7 @@ mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed",
                                "#fallriverace", "#adamdriverisoverparty", "#thefranchiseairwaves",
                                "zywave", "waverlys", "showboating", "shockwaves", "shockwave", 
                                "piledriver", "legaciesriverdale", "busdrivers", "bayyybeeee",
-                               "bayless", "baying", "airwaves"))
+                               "bayless", "baying", "airwaves", "adamdriver"))
 
 ```
 
