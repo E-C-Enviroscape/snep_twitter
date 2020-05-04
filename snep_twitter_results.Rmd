@@ -64,7 +64,7 @@ mystopwords <- tibble(word = c("driver", "drivers", "hitchhiking", "sealed",
                                "#fallriverace", "#adamdriverisoverparty", "#thefranchiseairwaves",
                                "zywave", "waverlys", "showboating", "shockwaves", "shockwave", 
                                "piledriver", "legaciesriverdale", "busdrivers", "bayyybeeee",
-                               "bayless", "baying", "airwaves", "adamdriver"))
+                               "bayless", "baying", "airwaves", "adamdriver", "#thefranchiseairwaves"))
 
 ```
 
@@ -222,10 +222,10 @@ allsnep_daily_plot <- all_snep %>%
   arrange(date, -n, word) %>%
   filter(n != "1") %>%
   top_n(15) %>%
-  #mutate(word = reorder(word, n)) %>%
   ggplot(aes(x = word, y = n)) +
   geom_col() +
   facet_wrap(~date) +
+  scale_x_discrete(limits = c("river", "beach", "bay", "wave", "ocean", "fishing", "forest", "seal", "swimming", "flooding", "tide", "seafood", "hiking", "drought", "ferry")) +
   xlab(NULL) +
   coord_flip() +
       labs(y = "Count",
