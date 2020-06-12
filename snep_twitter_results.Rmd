@@ -195,7 +195,7 @@ allsnep_plot <- all_snep %>%
              label.size = NA, 
              family="Helvetica", 
              size = 4) +
-  geom_label(aes(x = 2, y = 30, label = "The data presented here is derived from publicly available Twitter data obtained 
+  geom_label(aes(x = 2, y = 125, label = "The data presented here is derived from publicly available Twitter data obtained 
 via the rtweet package in R and used in accordance with the Twitter Privacy Policy."),
                            hjust = 0, 
                            vjust = 0.5, 
